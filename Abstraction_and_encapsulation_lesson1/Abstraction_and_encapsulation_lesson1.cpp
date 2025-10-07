@@ -7,79 +7,84 @@ class Address
 {
 private:
 
-    std::string city{}; // поля
+    std::string city{};
     std::string street{};
-    int house{};
-    int apartment{};
-
+    std::string house{};
+    std::string apartment{};
 public:
 
-    // конструктор
-
-    Address(const std::string& setCity, const std::string& setStreet, int setHouse, int setApartment) : city{ setCity }, street{ setStreet }, house{ setHouse }, apartment{ setApartment } {}
-    Address() {} 
-    
-    // чтение из файла, создание массива, заполнение массива       
-
-    static Address** read_and_create_arr(const std::string& path_to_file, int& size)
+    Address(std::string& setCity, std::string& setStreet, std::string& setHouse, std::string& setApartment) : city{ setCity }, street{ setStreet }, house{ setHouse }, apartment{ setApartment }
     {
-        std::ifstream file(path_to_file);
-        if (file.is_open())
-        {
-            file >> size;
-            file >> std::ws;
-            Address** addresses{ new Address*[size] {} };
-            std::string city, street, house1, apartment1;
-            for (int i{}; i < size; ++i)
-            {
-                std::getline(file, city);
-                std::getline(file, street);
-                std::getline(file, house1);
-                std::getline(file, apartment1);
-                int house = std::stoi(house1);
-                int apartment = std::stoi(apartment1);
-                addresses[i] = new Address(city, street, house, apartment);
-            }
-            file.close();
-            return addresses;
-        }
-        else
-        {
-            std::cout << "Файл не найден!";
-        }
     }
-
-    // запись в файл
-
-    static void output_to_file(const std::string& path_to_file, Address** addresses, int& size)
+    Address() {};
+    const std::string get_output_address()
     {
-        std::ofstream file(path_to_file);
-        if (file.is_open())
-        {
-            file << size << '\n';
-            for (int i = size - 1; i >= 0; --i)
-            {
-                file << addresses[i]->city << ", " << addresses[i]->street << ", " << addresses[i]->house << ", " << addresses[i]->apartment << '\n';
-            }
-            file.close();
-        }
-    }
+        return (city + ' ' + street + ' ' + house + ' ' + apartment);
+    };
 };
+
+Address* create_arr(int size);
+void delete_arr(Address*& array);
 
 int main(int argc, char* argv[])
 {
     SetConsoleCP(1251);
-    SetConsoleOutputCP(1251);   
-    std::string filePath = "in.txt";
-    std::string output_FilePath = "out.txt";
+    SetConsoleOutputCP(1251);
     int size{};
-    Address address{};    
-    Address** addresses{ Address::read_and_create_arr(filePath, size) };
-    address.output_to_file(output_FilePath, addresses, size);
-    for (int i = 0; i < size; ++i) 
+    Address* example = nullptr;
+    std::string filePath = "in.txt";
+    std::ifstream file(filePath);
+    if (file.is_open())
     {
-        delete addresses[i];
+        file >> size;
+        std::string city, street, house, apartment;
+        example = create_arr(size);
+        file >> std::ws;
+        for (int i{}; i < size; ++i)
+        {
+            std::getline(file, city);
+            std::getline(file, street);
+            std::getline(file, house);
+            std::getline(file, apartment);
+            Address address{ city, street, house, apartment };
+            example[i] = address;
+
+        }
+        file.close();
     }
-    delete[] addresses;
-        return EXIT_SUCCESS;
+    else
+    {
+        std::cout << "Файл не найден!";
+    }
+    std::string output_FilePath = "out.txt";
+    std::ofstream output_File(output_FilePath);
+    if (output_File.is_open())
+    {
+        output_File << size << std::endl;
+        for (int i{}; i < size; ++i)
+        {
+            output_File << example[i].get_output_address() << std::endl;
+        }
+        output_File.close();
+    }
+    else
+    {
+        std::cout << "Файл не найден!";
+    }
+    delete_arr(example);
+    return EXIT_SUCCESS;
 }
+
+
+Address* create_arr(int size)
+{
+    return new Address[size]{};
+}
+
+
+void delete_arr(Address*& array)
+{
+    delete[] array;
+    array = nullptr;
+}
+
